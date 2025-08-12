@@ -20,8 +20,7 @@ const ships = Object.entries(fileMap).map(([path, url]) => ({
   url,
 }));
 // choose default by filename
-const DEFAULT_SHIP_KEY = 'x-wing'; // expects a file like x-wing.glb
-const defaultIndex = ships.findIndex(s => s.name.toLowerCase() === DEFAULT_SHIP_KEY);
+const pattern = /x[-_\s]?wing[-_\s]*/i; // expects a file like x-wing.glb
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -95,8 +94,8 @@ function makeShipMenu(list, onPick) {
   // ---- Auto-pick "x-wing" on boot ----
   if (list.length) {
     // match "x-wing", "xwing", "x_wing", etc.
-    let idx = list.findIndex(s => s.name.toLowerCase() === DEFAULT_SHIP_KEY.toLowerCase());
-    if (idx < 0) idx = list.findIndex(s => /x[-_\s]?wing/i.test(s.name));
+    let idx = list.findIndex(s => pattern.test(s.name.toLowerCase()));
+    if (idx < 0) idx = list.findIndex(s => /x[-_\s]?wing[-_\s]*/i.test(s.name));
     if (idx < 0) idx = 0; // fallback
 
     sel.selectedIndex = idx;                 // select the option

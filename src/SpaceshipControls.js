@@ -30,11 +30,10 @@ export class SpaceshipControls {
 
     const gltf = await this.loader.loadAsync(url);
     const model = gltf.scene;
-    console.log('Loaded model:', model);
 
     // optional - orientation and scale
     // --- PRESETS LOOKUP (by base filename) ---
-    const base = url.split('/').pop().toLowerCase().replace(/\.(glb|gltf)$/, '');
+    const base = url.split('/').pop().toLowerCase().replace(/\.(glb|gltf)$/, '').replace(/-.*/, '') ; //.replace(/^([^-\n]*-[^-\n]*)-.*$/, '$1');
     const preset = SHIP_PRESETS[base] ?? SHIP_PRESETS.default ?? {};
     
     this.shipRadius = preset.shipRadius ?? 1.5; // radius for collisions
