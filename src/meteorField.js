@@ -76,7 +76,7 @@ export function makeMeteorField({
   count = 800,
   shellMin = 60,
   shellMax = 140,
-  rMin = 0.5,
+  rMin = 0.2,
   rMax = 1.2,
   ampMin = -0.95,      // how “rocky”
   ampMax = 0.75

@@ -48,7 +48,7 @@ export class Exploder {
     geom.setAttribute('velocity', new THREE.BufferAttribute(velocities, 3));
 
     const mat = new THREE.PointsMaterial({
-      size: 0.12,
+      size: 0.15,
       transparent: true,
       depthWrite: false,
       blending: THREE.AdditiveBlending,
