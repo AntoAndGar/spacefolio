@@ -5,10 +5,12 @@ import { Exploder } from './explosions.js';
 import { SpaceshipControls } from './SpaceshipControls.js';
 import { makeMeteorField } from './meteorField.js';
 import { makeComposer } from './postfx.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { PMREMGenerator } from 'three';
 
 
 // Finds every .glb in src/assets (and subfolders) and returns URL strings
-const fileMap = import.meta.glob('./assets/**/*.glb', {
+const fileMap = import.meta.glob('./assets/spaceships/**/*.glb', {
   eager: true,
   import: 'default',
   query: '?url',          // tells Vite: give me a URL
@@ -29,10 +31,8 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 document.body.appendChild(renderer.domElement);
 
-
-
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x000000); // black
+//scene.background = new THREE.Color(0x000000); // black
 
 const camera = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.1, 1000);
 camera.position.set(0, 2, 8);
@@ -43,6 +43,36 @@ const sun = new THREE.DirectionalLight(0xffffff, 1.2);
 sun.position.set(5, 10, 7);
 sun.castShadow = true;
 scene.add(sun);
+
+const panoUrl = new URL('./assets/panorama/space_nebula_hdri_panorama_360_skydome.glb', import.meta.url).href; // adjust path
+
+const skyLoader = new GLTFLoader();
+skyLoader.load(panoUrl, (gltf) => {
+  const domeRoot = gltf.scene;
+  // make sure the dome renders behind everything
+  domeRoot.traverse((o) => {
+    if (o.isMesh) {
+      // ensure it's a sky *inside* surface
+      o.material.side = THREE.BackSide;                 // render inward
+      o.material.depthWrite = false;                    // don't write depth
+      o.frustumCulled = false;                          // never cull
+      o.renderOrder = -1000;                             // draw first
+      // optional: make it unlit (pure texture) if needed
+      if (!o.material.isMeshBasicMaterial && o.material.map) {
+        o.material = new THREE.MeshBasicMaterial({
+          map: o.material.map,
+          side: THREE.BackSide,
+          depthWrite: false,
+          frustumCulled: false,
+          renderOrder: -1000
+        });
+      }
+    }
+  });
+  domeRoot.scale.setScalar(900); // big enough to enclose your scene
+  scene.add(domeRoot);
+});
+
 
 // Stars! far background Points 
 scene.add(makeStars(9000, 700));
@@ -153,11 +183,12 @@ function checkStarCollisions() {
 
   // radius from controls with fallback to 1.5
   const ship_radius = controls.shipRadius ?? 1.5;
+  const ship_position = controls.ship.position; // local position
 
   for (let i = 0; i < pos_meteor.length; i++) {
     if (!active_meteor[i]) continue;
     //const sum = radii[i] + ship_radius;
-    const sum_meteor = (radii_meteor[i] + amps_meteor[i] * 0.9) + ship_radius; // conservative padding
+    const sum_meteor = (radii_meteor[i] + amps_meteor[i] * 1.0) + (ship_radius); // conservative padding
 
     // if (tmp.distanceToSquared(pos[i]) < sum * sum) {
     //   // mark inactive and visually remove the instance by scaling to 0
